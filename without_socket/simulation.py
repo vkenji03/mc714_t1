@@ -7,32 +7,29 @@ from server import Server
 
 class TrafficSimulator:
     def __init__(self, load_balancer, num_blocks, requests_per_block, inter_block_delay=2):
+        self.inter_block_delay = inter_block_delay
         self.load_balancer = load_balancer
         self.num_blocks = num_blocks
-        self.requests_per_block = requests_per_block
-        self.inter_block_delay = inter_block_delay
         self.request_id = 0
+        self.requests_per_block = requests_per_block
     
     def generate_requests(self):
+        print("Iniício da sinulação...")
         for block in range(1, self.num_blocks + 1):
-            print(f"\n--- Iniciando bloco {block} ---")
             for _ in range(self.requests_per_block):
                 request = {
                     "id": self.request_id,
-                    "cpu_time": random.uniform(1, 5),
-                    "io_time": random.uniform(1, 5),
+                    "cpu_time": random.uniform(0.0, 1.0 + block * 0.2),
+                    "io_time": random.uniform(0.0, 0.2 + block * 0.05),
                 }
                 self.load_balancer.balance_request(request)
                 self.request_id += 1
-                # Intervalo entre requisições dentro do bloco
                 time.sleep(random.uniform(0.1, 0.5))
-            print(f"--- Bloco {block} concluído ---\n")
-            # Espera antes de iniciar o próximo bloco
             time.sleep(self.inter_block_delay)
-        print("Todas as requisições foram geradas.")
+        print("Todas as requisições foram enviadas")
 
 def all_servers_done(servers):
-    return all(server.queue.empty() for server in servers)
+    return all(server.state == 'AWAY' for server in servers)
 
 def main():
     import argparse
@@ -67,15 +64,17 @@ def main():
             traffic_thread.join(timeout=1)
     except KeyboardInterrupt:
         print("Simulação interrompida pelo usuário.")
-    finally:        
-        # Aguarda até que todas as filas estejam vazias
-        while not all_servers_done(servers):
-            time.sleep(1)
-        time.sleep(5)
-
+    finally:
         for server in servers:
             server.stop()
-        print("Simulação encerrada.")
+
+        while not all_servers_done(servers):
+            time.sleep(1)
+
+        print("Simulação encerrada.\n")
+
+        for server in servers:
+            server.print_metrics()
 
 if __name__ == "__main__":
     main()
