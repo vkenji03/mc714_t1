@@ -2,9 +2,9 @@ import random
 from queue import Queue
 
 class LoadBalancer:
-    def __init__(self, servers, mode="random", _enable_debug = False):
+    def __init__(self, servers, mode="random", enable_debug = False):
         self._current_server = 0
-        self._enable_debug = _enable_debug
+        self._enable_debug = enable_debug
         self._mode = mode
         self._servers = servers
 

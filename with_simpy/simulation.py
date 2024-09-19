@@ -1,5 +1,6 @@
 import random
 import simpy
+import json
 
 from load_balancer import LoadBalancer
 from server import Server
@@ -12,7 +13,7 @@ class TrafficSimulator:
         self.request_id = 0
 
         # Faz com que generate_requests seja incluido no ambiente de simulacao (nao tenho certeza)
-        self.action = env.process(self.generate_requests())
+        # self.action = env.process(self.generate_requests())
     
     def generate_requests(self):
         print("Iniício da simulação...")
@@ -25,6 +26,30 @@ class TrafficSimulator:
             self.load_balancer.balance_request(request)
             self.request_id += 1
             yield self.env.timeout(self.inter_request_delay)
+
+    def send_requests_from_json(self, json_filename):
+        print(f"Início da simulação do arquivo {json_filename}...")
+
+        # Lê a lista de requisições do arquivo JSON
+        with open(json_filename, 'r') as file:
+            requests_list = json.load(file)
+
+        # Ordena as requisições por tempo de chegada
+        sorted_requests = sorted(requests_list, key=lambda r: r['arrival_time'])
+
+        for request in sorted_requests:
+            arrival_time = request['arrival_time']
+            
+            # Aguarda até o tempo de chegada da requisição
+            yield self.env.timeout(arrival_time - self.env.now)
+            
+            # Cria e envia a requisição para o load balancer
+            new_request = {
+                "id": request['id'],
+                "cpu_time": request['cpu_time'],
+                "io_time": request['io_time'],
+            }
+            self.load_balancer.balance_request(new_request)
 
 def main():
     import argparse
@@ -48,7 +73,8 @@ def main():
     
     # Iniciando o simulador de tráfego com os parâmetros fornecidos
     traffic_simulator = TrafficSimulator(env, load_balancer, args.inter_request_delay)
-
+    # env.process(traffic_simulator.generate_requests())
+    env.process(traffic_simulator.send_requests_from_json('1_long_999_short.json'))
     env.run(until=args.time_to_run_simulation)
 
     print('Simulacao encerrada')

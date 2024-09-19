@@ -3,10 +3,10 @@ import threading
 from queue import Queue
 
 class Server:
-    def __init__(self, env, server_id, _enable_debug = False):
+    def __init__(self, env, server_id, enable_debug = False):
         self.env = env
         self._accepting_request = True
-        self._enable_debug = _enable_debug
+        self._enable_debug = enable_debug
         self.processing_time = 0
         self.queue = Queue()
         self.requests_received = 0
