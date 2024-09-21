@@ -5,7 +5,6 @@ from queue import Queue
 class Server:
     def __init__(self, env, server_id, enable_debug = False):
         self.env = env
-        self._accepting_request = True
         self._enable_debug = enable_debug
         self.processing_time = 0
         self.queue = Queue()
@@ -38,10 +37,6 @@ class Server:
                 self.state = 'AWAY'
                 yield self.env.timeout(0.1)
 
-
-    def stop(self):
-        self._accepting_request = False
-
     def print_metrics(self):
         avg_response_time = self.processing_time / self.requests_processed if self.requests_processed > 0 else 0
 
@@ -53,4 +48,22 @@ class Server:
         print(f"Accumulated processing time: {self.processing_time}")
         print(f"Average response time: {avg_response_time}")
         print("================================\n")
-        pass
+
+    def get_metrics(self):
+        avg_response_time = self.processing_time / self.requests_processed if self.requests_processed > 0 else 0
+        throughput = self.requests_processed / self.processing_time if self.processing_time > 0 else 0
+
+        return {
+            'processing_time': self.processing_time,
+            'requests_processed': self.requests_processed,
+            'requests_received': self.requests_received,
+            'avg_response_time': avg_response_time,
+            'throughput': throughput
+        }
+
+    def reset(self):
+        self.processing_time = 0
+        self.queue = Queue()
+        self.requests_received = 0
+        self.requests_processed = 0
+

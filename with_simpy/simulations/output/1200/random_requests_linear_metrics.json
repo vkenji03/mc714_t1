@@ -1,0 +1,23 @@
+{
+    "server_0": {
+        "processing_time": 1002.3400000000006,
+        "requests_processed": 324,
+        "requests_received": 324,
+        "avg_response_time": 3.093641975308644,
+        "throughput": 0.32324360995271045
+    },
+    "server_1": {
+        "processing_time": 1101.6499999999987,
+        "requests_processed": 344,
+        "requests_received": 344,
+        "avg_response_time": 3.2024709302325545,
+        "throughput": 0.31225888440067207
+    },
+    "server_2": {
+        "processing_time": 1020.5400000000005,
+        "requests_processed": 332,
+        "requests_received": 332,
+        "avg_response_time": 3.073915662650604,
+        "throughput": 0.3253179689184156
+    }
+}
