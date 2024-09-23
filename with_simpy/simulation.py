@@ -81,8 +81,12 @@ def main():
             for server in servers:
                 all_metrics[f"server_{server.server_id}"] =  server.get_metrics()
 
+            output_dir = f"./simulations/output/{json_file.replace('.json', '')}"
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
             # Nome do arquivo de saída com a política aplicada e o nome original do arquivo
-            output_filename = f"./simulations/output/{args.policy}_{os.path.basename(json_filepath).replace('.json', '_metrics.json')}"
+            output_filename = f"{output_dir}/{args.policy}_metrics.json"
             
             # Salvar as métricas de todos os servidores
             save_metrics(all_metrics, output_filename)
