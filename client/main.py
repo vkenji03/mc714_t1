@@ -17,12 +17,15 @@ def requisition(host, port, time):
         data = s.recv(1024)
         print(f'Recebido: {data}')
 
+        s.shutdown(socket.SHUT_RDWR)
+        s.close()
+
 def do_requests():
     for _ in range(3):
         host, port = LOADBALANCER_ADDR
         for _ in range(random.randint(1, 5)):
             t = threading.Thread(target=requisition, args=(host, port, random.randint(1, 5)))
-            t.daemon = True
+            # t.daemon = True
             t.start()
         time.sleep(random.randint(1, 3))
 
@@ -41,13 +44,14 @@ def main():
 
     lb = LoadBalancer(LOADBALANCER_ADDR[0], LOADBALANCER_ADDR[1], servers, 'random')
     t = threading.Thread(target=lb.create)
-    t.daemon = True
+    # t.daemon = True
     t.start()
 
     time.sleep(2)
 
     do_requests()
 
+    lb.stop()
     for server in servers:
         server.stop()
 

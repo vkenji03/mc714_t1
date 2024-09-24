@@ -11,6 +11,7 @@ class Server():
         self._port = port
         self._num = server_num
         self._stop_thread = threading.Event()
+        self._socket = None
 
     @property
     def queue(self):
@@ -41,16 +42,20 @@ class Server():
         thread.start()
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self._host, self._port))
-            s.listen()
+            self._socket = s
+            self._socket.bind((self._host, self._port))
+            self._socket.listen()
             print(f"Server {self._num} listening on {self._host}:{self._port}")
 
+
             while True:
-                conn, _ = s.accept()
+                conn, _ = self._socket.accept()
                 data = conn.recv(3000)
                 data = struct.unpack('i', data)[0]
                 self.queue.put([data, conn])
                 print(f'Request added on queue of Server {self._num}')
 
     def stop(self):
-        self._stop_thread.set()
+        self._socket.shutdown(socket.SHUT_RDWR)
+        self._socket.close()
+        print(f"Server {self._num} stopped")

@@ -11,6 +11,7 @@ class LoadBalancer():
 
         self._next_server = 0 # attribute only used on mode round_robin
         self._modes = {'random': 'random', 'round_robin': 'round_robin', 'shortest_queue': 'shortest_queue'}
+        self._socket = None
         
         try:
             self._mode = self._modes[mode]
@@ -22,6 +23,8 @@ class LoadBalancer():
             redirect_sock.connect((host, port))
             redirect_sock.sendall(data)
             conn.sendall(redirect_sock.recv(3000))
+            redirect_sock.shutdown(socket.SHUT_RDWR)
+            redirect_sock.close()
 
     def _random(self):
         server_index = random.randint(0, len(self._servers) - 1)
@@ -42,12 +45,13 @@ class LoadBalancer():
 
     def create(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self._host, self._port))
-            s.listen()
+            self._socket = s
+            self._socket.bind((self._host, self._port))
+            self._socket.listen()
             print(f'Load Balancer listening on {self._host}: {self._port}')
 
             while True:
-                conn, _ = s.accept()
+                conn, _ = self._socket.accept()
                 data = conn.recv(3000)
                 server = None
 
@@ -61,3 +65,9 @@ class LoadBalancer():
                 thread = threading.Thread(target=self._redirect, args=(server.host, server.port, data, conn))
                 thread.daemon = True
                 thread.start()
+
+    def stop(self):
+        self._socket.shutdown(socket.SHUT_RDWR)
+        self._socket.close()
+        print("Load balancer stopped")
+
